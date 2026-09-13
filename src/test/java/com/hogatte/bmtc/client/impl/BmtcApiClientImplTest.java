@@ -7,10 +7,11 @@ import com.hogatte.bmtc.dto.VehicleTripDetailsResponse;
 import com.hogatte.feature.vehiclelist.VehicleListService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class BmtcApiClientImplTest {
 
@@ -20,7 +21,7 @@ class BmtcApiClientImplTest {
 
     @BeforeEach
     void setUp() {
-        vehicleListService = Mockito.mock(VehicleListService.class);
+        vehicleListService = mock(VehicleListService.class);
         objectMapper = new ObjectMapper();
         client = new BmtcApiClientImpl(vehicleListService, objectMapper);
     }
@@ -39,7 +40,7 @@ class BmtcApiClientImplTest {
             }
             """;
 
-        Mockito.when(vehicleListService.fetchVehicles(any())).thenReturn(jsonResponse);
+        when(vehicleListService.fetchVehicles(any())).thenReturn(jsonResponse);
 
         ListVehiclesResponse response = client.listVehicles("KA57F5035");
 
@@ -78,7 +79,7 @@ class BmtcApiClientImplTest {
             }
             """;
 
-        Mockito.when(vehicleListService.fetchVehicleTripDetails(any())).thenReturn(jsonResponse);
+        when(vehicleListService.fetchVehicleTripDetails(any())).thenReturn(jsonResponse);
 
         VehicleTripDetailsResponse response = client.getVehicleTripDetails(15423L);
 
@@ -106,7 +107,7 @@ class BmtcApiClientImplTest {
             }
             """;
 
-        Mockito.when(vehicleListService.fetchRoutePoints(any())).thenReturn(jsonResponse);
+        when(vehicleListService.fetchRoutePoints(any())).thenReturn(jsonResponse);
 
         RoutePointsResponse response = client.getRoutePoints(1001L);
 
@@ -120,7 +121,7 @@ class BmtcApiClientImplTest {
     void getVehicleTripDetails_wrappedJsonString() {
         String wrappedJsonResponse = "\"{\\\"Message\\\":\\\"Success\\\",\\\"Issuccess\\\":true,\\\"RouteDetails\\\":[{\\\"routeid\\\":1001,\\\"vehicleid\\\":15423,\\\"stationid\\\":50,\\\"stationname\\\":\\\"Majestic\\\",\\\"sourcestation\\\":\\\"Majestic\\\",\\\"destinationstation\\\":\\\"Silk Board\\\",\\\"latitude\\\":12.9716,\\\"longitude\\\":77.5946}],\\\"LiveLocation\\\":[{\\\"latitude\\\":12.9716,\\\"longitude\\\":77.5946,\\\"vehicleid\\\":15423,\\\"vehiclenumber\\\":\\\"KA57F5035\\\"}]}\"";
 
-        Mockito.when(vehicleListService.fetchVehicleTripDetails(any())).thenReturn(wrappedJsonResponse);
+        when(vehicleListService.fetchVehicleTripDetails(any())).thenReturn(wrappedJsonResponse);
 
         VehicleTripDetailsResponse response = client.getVehicleTripDetails(15423L);
 

@@ -14,6 +14,9 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 class VehicleListServiceTest {
 
+    private static final String USER_AGENT_HEADER = "User-Agent";
+    private static final String USER_AGENT = "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36";
+
     private MockRestServiceServer mockServer;
     private VehicleListService vehicleListService;
 
@@ -30,7 +33,7 @@ class VehicleListServiceTest {
 
         mockServer.expect(requestTo("/ListVehicles"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header("User-Agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36"))
+                .andExpect(header(USER_AGENT_HEADER, USER_AGENT))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json("{\"vehicleRegNo\":\"KA57F5035\"}"))
                 .andRespond(withSuccess(jsonResponse, MediaType.APPLICATION_JSON));
@@ -48,7 +51,7 @@ class VehicleListServiceTest {
 
         mockServer.expect(requestTo("/VehicleTripDetails_v2"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header("User-Agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36"))
+                .andExpect(header(USER_AGENT_HEADER, USER_AGENT))
                 .andExpect(header("deviceType", "WEB"))
                 .andExpect(header("lan", "en"))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -68,7 +71,7 @@ class VehicleListServiceTest {
 
         mockServer.expect(requestTo("/RoutePoints"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header("User-Agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36"))
+                .andExpect(header(USER_AGENT_HEADER, USER_AGENT))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json("{\"routeid\":2357}"))
                 .andRespond(withSuccess(jsonResponse, MediaType.APPLICATION_JSON));

@@ -4,7 +4,6 @@ import com.hogatte.exception.GlobalExceptionHandler;
 import com.hogatte.feature.destinationcheck.model.DestinationCheckRequest;
 import com.hogatte.feature.destinationcheck.model.DestinationCheckResponse;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -13,6 +12,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -30,7 +30,7 @@ class DestinationCheckControllerTest {
 
     @Test
     void testCheckSuccess_ahead() throws Exception {
-        Mockito.when(destinationCheckService.check(any(DestinationCheckRequest.class)))
+        when(destinationCheckService.check(any(DestinationCheckRequest.class)))
                 .thenReturn(new DestinationCheckResponse(21120L, "KA57F5030", 23219L, "Avalahalli Hosakote", "AHEAD", true, "Bus is heading towards your destination"));
 
         mockMvc.perform(post("/api/v1/destination-check")
@@ -47,7 +47,7 @@ class DestinationCheckControllerTest {
 
     @Test
     void testCheckSuccess_passed() throws Exception {
-        Mockito.when(destinationCheckService.check(any(DestinationCheckRequest.class)))
+        when(destinationCheckService.check(any(DestinationCheckRequest.class)))
                 .thenReturn(new DestinationCheckResponse(21120L, "KA57F5030", 23219L, "Avalahalli Hosakote", "PASSED", false, "Bus has already passed your destination"));
 
         mockMvc.perform(post("/destination-check")
@@ -60,7 +60,7 @@ class DestinationCheckControllerTest {
 
     @Test
     void testCheckGet_success() throws Exception {
-        Mockito.when(destinationCheckService.check(any(DestinationCheckRequest.class)))
+        when(destinationCheckService.check(any(DestinationCheckRequest.class)))
                 .thenReturn(new DestinationCheckResponse(21120L, "KA57F5030", 23219L, "Avalahalli Hosakote", "PASSED", false, "Bus has already passed your destination"));
 
         mockMvc.perform(get("/api/v1/destination-check")

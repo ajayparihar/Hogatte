@@ -6,7 +6,6 @@ import com.hogatte.bmtc.dto.RoutePointsResponse;
 import com.hogatte.bmtc.dto.VehicleTripDetailsResponse;
 import com.hogatte.exception.GlobalExceptionHandler;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -15,6 +14,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -41,7 +41,7 @@ class VehicleListControllerTest {
                 vehicle.setResponsecode(200);
                 mockResponse.setData(java.util.List.of(vehicle));
 
-                Mockito.when(bmtcApiClient.listVehicles(any()))
+                when(bmtcApiClient.listVehicles(any()))
                                 .thenReturn(mockResponse);
 
                 mockMvc.perform(post("/api/v1/vehicles/list")
@@ -64,7 +64,7 @@ class VehicleListControllerTest {
                 vehicle.setResponsecode(200);
                 mockResponse.setData(java.util.List.of(vehicle));
 
-                Mockito.when(bmtcApiClient.listVehicles(any()))
+                when(bmtcApiClient.listVehicles(any()))
                                 .thenReturn(mockResponse);
 
                 mockMvc.perform(get("/api/v1/vehicles/list")
@@ -85,7 +85,7 @@ class VehicleListControllerTest {
                 vehicle.setResponsecode(200);
                 mockResponse.setData(java.util.List.of(vehicle));
 
-                Mockito.when(bmtcApiClient.listVehicles(any()))
+                when(bmtcApiClient.listVehicles(any()))
                                 .thenReturn(mockResponse);
 
                 mockMvc.perform(get("/api/v1/vehicles/list"))
@@ -112,7 +112,7 @@ class VehicleListControllerTest {
                 routeDetail.setRouteid(1001L);
                 mockResponse.setRouteDetails(java.util.List.of(routeDetail));
 
-                Mockito.when(bmtcApiClient.getVehicleTripDetails(any()))
+                when(bmtcApiClient.getVehicleTripDetails(any()))
                                 .thenReturn(mockResponse);
 
                 mockMvc.perform(post("/api/v1/vehicles/trip-details")
@@ -133,7 +133,7 @@ class VehicleListControllerTest {
                 routeDetail.setRouteid(1001L);
                 mockResponse.setRouteDetails(java.util.List.of(routeDetail));
 
-                Mockito.when(bmtcApiClient.getVehicleTripDetails(any()))
+                when(bmtcApiClient.getVehicleTripDetails(any()))
                                 .thenReturn(mockResponse);
 
                 mockMvc.perform(get("/api/v1/vehicles/trip-details")
@@ -160,7 +160,7 @@ class VehicleListControllerTest {
                 point.setLongitude("77.5946");
                 mockResponse.setData(java.util.List.of(point));
 
-                Mockito.when(bmtcApiClient.getRoutePoints(any()))
+                when(bmtcApiClient.getRoutePoints(any()))
                                 .thenReturn(mockResponse);
 
                 mockMvc.perform(post("/api/v1/vehicles/route-points")
@@ -178,7 +178,7 @@ class VehicleListControllerTest {
                 point.setLongitude("77.5946");
                 mockResponse.setData(java.util.List.of(point));
 
-                Mockito.when(bmtcApiClient.getRoutePoints(any()))
+                when(bmtcApiClient.getRoutePoints(any()))
                                 .thenReturn(mockResponse);
 
                 mockMvc.perform(get("/api/v1/vehicles/route-points")

@@ -11,13 +11,14 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class VehicleListService {
 
-    private final RestClient bmtcRestClient;
+    private static final String USER_AGENT_HEADER = "User-Agent";
     private static final String USER_AGENT = "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36";
+    private final RestClient bmtcRestClient;
 
     public String fetchVehicles(String vehicleRegNo) {
         return bmtcRestClient.post()
                 .uri("/ListVehicles")
-                .header("User-Agent", USER_AGENT)
+                .header(USER_AGENT_HEADER, USER_AGENT)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of("vehicleRegNo", vehicleRegNo))
                 .retrieve()
@@ -27,7 +28,7 @@ public class VehicleListService {
     public String fetchVehicleTripDetails(Long vehicleId) {
         return bmtcRestClient.post()
                 .uri("/VehicleTripDetails_v2")
-                .header("User-Agent", USER_AGENT)
+                .header(USER_AGENT_HEADER, USER_AGENT)
                 .header("deviceType", "WEB")
                 .header("lan", "en")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -39,7 +40,7 @@ public class VehicleListService {
     public String fetchRoutePoints(Long routeId) {
         return bmtcRestClient.post()
                 .uri("/RoutePoints")
-                .header("User-Agent", USER_AGENT)
+                .header(USER_AGENT_HEADER, USER_AGENT)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of("routeid", routeId))
                 .retrieve()
@@ -49,7 +50,7 @@ public class VehicleListService {
     public String fetchBusStops(String stationName) {
         return bmtcRestClient.post()
                 .uri("/FindNearByBusStop_v2")
-                .header("User-Agent", USER_AGENT)
+                .header(USER_AGENT_HEADER, USER_AGENT)
                 .header("lan", "en")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of("stationName", stationName))
