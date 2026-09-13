@@ -31,9 +31,16 @@ public class DestinationCheckController {
             @RequestParam(name = "stopName", required = false) String stopNameParam2
     ) {
         Long finalVehicleId = vehicleid != null ? vehicleid : vehicleId;
-        String finalStationName = stationName != null ? stationName :
-                (stationname != null ? stationname :
-                        (stopNameParam != null ? stopNameParam : stopNameParam2));
+        String finalStationName;
+        if (stationName != null) {
+            finalStationName = stationName;
+        } else if (stationname != null) {
+            finalStationName = stationname;
+        } else if (stopNameParam != null) {
+            finalStationName = stopNameParam;
+        } else {
+            finalStationName = stopNameParam2;
+        }
         DestinationCheckRequest request = new DestinationCheckRequest(finalVehicleId, finalStationName);
         log.info("Received GET /destination-check request for vehicleId: {}, stationName: {}", finalVehicleId, finalStationName);
         return destinationCheckService.check(request);
