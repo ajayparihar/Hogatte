@@ -19,111 +19,152 @@ public class DestinationCheckServiceImpl implements DestinationCheckService {
     @Override
     public DestinationCheckResponse check(DestinationCheckRequest request) {
         Long vehicleId = request.getVehicleid();
-        String targetStationName = request.getStationName() != null ? request.getStationName().trim() : "";
+        String targetStationName = getTrimmedStationName(request);
 
-        // Step 1: Call /api/v1/vehicles/trip-details
         VehicleTripDetailsResponse tripDetails = bmtcApiClient.getVehicleTripDetails(vehicleId);
-
-        if (tripDetails == null || tripDetails.getRouteDetails() == null || tripDetails.getRouteDetails().isEmpty()
-                || isTripNotInProgress(tripDetails)) {
-            return new DestinationCheckResponse(
-                    vehicleId,
-                    null,
-                    null,
-                    targetStationName,
-                    "NO_TRIP",
-                    false,
-                    "No trip is currently in progress for this vehicle");
+        if (hasNoTrip(tripDetails)) {
+            return buildNoTripResponse(vehicleId, targetStationName);
         }
 
-        String vehicleNumber = null;
-        if (tripDetails.getLiveLocation() != null && !tripDetails.getLiveLocation().isEmpty()) {
-            vehicleNumber = tripDetails.getLiveLocation().getFirst().getVehiclenumber();
-        }
-
-        // Step 2: Get RouteDetails
+        String vehicleNumber = getVehicleNumber(tripDetails);
         List<VehicleTripDetailsResponse.RouteDetail> routeDetails = tripDetails.getRouteDetails();
+        TargetStationMatch targetStation = findTargetStation(routeDetails, targetStationName);
 
+        if (targetStation == null) {
+            return buildNotFoundResponse(vehicleId, vehicleNumber, targetStationName);
+        }
+
+        int vehicleCurrentPositionIndex = findVehicleCurrentPositionIndex(tripDetails, routeDetails);
+        if (vehicleCurrentPositionIndex == -1) {
+            return buildLocationUnavailableResponse(vehicleId, vehicleNumber, targetStation.station);
+        }
+
+        return buildDestinationResponse(vehicleId, vehicleNumber, targetStation, vehicleCurrentPositionIndex);
+    }
+
+    private String getTrimmedStationName(DestinationCheckRequest request) {
+        return request.getStationName() != null ? request.getStationName().trim() : "";
+    }
+
+    private boolean hasNoTrip(VehicleTripDetailsResponse tripDetails) {
+        return tripDetails == null
+                || tripDetails.getRouteDetails() == null
+                || tripDetails.getRouteDetails().isEmpty()
+                || isTripNotInProgress(tripDetails);
+    }
+
+    private String getVehicleNumber(VehicleTripDetailsResponse tripDetails) {
+        if (tripDetails.getLiveLocation() == null || tripDetails.getLiveLocation().isEmpty()) {
+            return null;
+        }
+        return tripDetails.getLiveLocation().getFirst().getVehiclenumber();
+    }
+
+    private TargetStationMatch findTargetStation(List<VehicleTripDetailsResponse.RouteDetail> routeDetails,
+            String targetStationName) {
         String normalizedTarget = normalize(targetStationName);
-
-        // Step 3: Find target station by name
-        int targetStationIndex = -1;
-        VehicleTripDetailsResponse.RouteDetail targetStation = null;
-
-        // 1st attempt: exact match ignoring cases and spaces
         for (int i = 0; i < routeDetails.size(); i++) {
             VehicleTripDetailsResponse.RouteDetail stop = routeDetails.get(i);
-            if (stop.getStationname() != null && normalize(stop.getStationname()).equals(normalizedTarget)) {
-                targetStationIndex = i;
-                targetStation = stop;
-                break;
+            if (hasMatchingStationName(stop, normalizedTarget)) {
+                return new TargetStationMatch(i, stop);
             }
         }
 
-        // 2nd attempt: contains match ignoring cases and spaces
-        if (targetStationIndex == -1 && !normalizedTarget.isEmpty()) {
-            for (int i = 0; i < routeDetails.size(); i++) {
-                VehicleTripDetailsResponse.RouteDetail stop = routeDetails.get(i);
-                if (stop.getStationname() != null && normalize(stop.getStationname()).contains(normalizedTarget)) {
-                    targetStationIndex = i;
-                    targetStation = stop;
-                    break;
-                }
+        if (normalizedTarget.isEmpty()) {
+            return null;
+        }
+
+        for (int i = 0; i < routeDetails.size(); i++) {
+            VehicleTripDetailsResponse.RouteDetail stop = routeDetails.get(i);
+            if (stop.getStationname() != null && normalize(stop.getStationname()).contains(normalizedTarget)) {
+                return new TargetStationMatch(i, stop);
             }
         }
+        return null;
+    }
 
-        // Step 4: If NOT FOUND
-        if (targetStationIndex == -1) {
-            return new DestinationCheckResponse(
-                    vehicleId,
-                    vehicleNumber,
-                    null,
-                    targetStationName,
-                    "NOT_FOUND",
-                    false,
-                    "Station is not on this vehicle's current route");
-        }
+    private boolean hasMatchingStationName(VehicleTripDetailsResponse.RouteDetail stop, String normalizedTarget) {
+        return stop.getStationname() != null && normalize(stop.getStationname()).equals(normalizedTarget);
+    }
 
-        Long stationId = targetStation.getStationid();
-        String matchedStationName = targetStation.getStationname();
+    private int findVehicleCurrentPositionIndex(VehicleTripDetailsResponse tripDetails,
+            List<VehicleTripDetailsResponse.RouteDetail> routeDetails) {
+        Double liveLat = getLiveLatitude(tripDetails);
+        Double liveLon = getLiveLongitude(tripDetails);
 
-        // Step 5: Determine vehicle's current position relative to station order
-        Double liveLat = null;
-        Double liveLon = null;
-        if (tripDetails.getLiveLocation() != null && !tripDetails.getLiveLocation().isEmpty()) {
-            VehicleTripDetailsResponse.LiveLocationEntry live = tripDetails.getLiveLocation().getFirst();
-            liveLat = live.getLatitude();
-            liveLon = live.getLongitude();
-        } else if (tripDetails.getCurrlatitude() != null && tripDetails.getCurrlongitude() != null) {
-            liveLat = tripDetails.getCurrlatitude();
-            liveLon = tripDetails.getCurrlongitude();
-        }
-
-        int vehicleCurrentPositionIndex = -1;
         if (liveLat != null && liveLon != null) {
-            vehicleCurrentPositionIndex = findNearestStationIndex(routeDetails, liveLat, liveLon);
-        } else {
-            for (int i = 0; i < routeDetails.size(); i++) {
-                if (Integer.valueOf(2).equals(routeDetails.get(i).getTripposition())) {
-                    vehicleCurrentPositionIndex = i;
-                    break;
-                }
+            return findNearestStationIndex(routeDetails, liveLat, liveLon);
+        }
+
+        for (int i = 0; i < routeDetails.size(); i++) {
+            if (Integer.valueOf(2).equals(routeDetails.get(i).getTripposition())) {
+                return i;
             }
         }
+        return -1;
+    }
 
-        if (vehicleCurrentPositionIndex == -1) {
-            return new DestinationCheckResponse(
-                    vehicleId,
-                    vehicleNumber,
-                    stationId,
-                    matchedStationName,
-                    "LOCATION_UNAVAILABLE",
-                    false,
-                    "Live location unavailable for this vehicle");
+    private Double getLiveLatitude(VehicleTripDetailsResponse tripDetails) {
+        if (tripDetails.getLiveLocation() != null && !tripDetails.getLiveLocation().isEmpty()) {
+            return tripDetails.getLiveLocation().getFirst().getLatitude();
         }
+        if (tripDetails.getCurrlatitude() != null && tripDetails.getCurrlongitude() != null) {
+            return tripDetails.getCurrlatitude();
+        }
+        return null;
+    }
 
-        // Step 6: Compare target station order with vehicle's current position
-        if (targetStationIndex >= vehicleCurrentPositionIndex) {
+    private Double getLiveLongitude(VehicleTripDetailsResponse tripDetails) {
+        if (tripDetails.getLiveLocation() != null && !tripDetails.getLiveLocation().isEmpty()) {
+            return tripDetails.getLiveLocation().getFirst().getLongitude();
+        }
+        if (tripDetails.getCurrlatitude() != null && tripDetails.getCurrlongitude() != null) {
+            return tripDetails.getCurrlongitude();
+        }
+        return null;
+    }
+
+    private DestinationCheckResponse buildNoTripResponse(Long vehicleId, String targetStationName) {
+        return new DestinationCheckResponse(
+                vehicleId,
+                null,
+                null,
+                targetStationName,
+                "NO_TRIP",
+                false,
+                "No trip is currently in progress for this vehicle");
+    }
+
+    private DestinationCheckResponse buildNotFoundResponse(Long vehicleId, String vehicleNumber,
+            String targetStationName) {
+        return new DestinationCheckResponse(
+                vehicleId,
+                vehicleNumber,
+                null,
+                targetStationName,
+                "NOT_FOUND",
+                false,
+                "Station is not on this vehicle's current route");
+    }
+
+    private DestinationCheckResponse buildLocationUnavailableResponse(Long vehicleId, String vehicleNumber,
+            VehicleTripDetailsResponse.RouteDetail targetStation) {
+        return new DestinationCheckResponse(
+                vehicleId,
+                vehicleNumber,
+                targetStation.getStationid(),
+                targetStation.getStationname(),
+                "LOCATION_UNAVAILABLE",
+                false,
+                "Live location unavailable for this vehicle");
+    }
+
+    private DestinationCheckResponse buildDestinationResponse(Long vehicleId, String vehicleNumber,
+            TargetStationMatch targetStation, int vehicleCurrentPositionIndex) {
+        Long stationId = targetStation.station.getStationid();
+        String matchedStationName = targetStation.station.getStationname();
+
+        if (targetStation.index >= vehicleCurrentPositionIndex) {
             return new DestinationCheckResponse(
                     vehicleId,
                     vehicleNumber,
@@ -132,15 +173,24 @@ public class DestinationCheckServiceImpl implements DestinationCheckService {
                     "AHEAD",
                     true,
                     "Bus is heading towards your destination");
-        } else {
-            return new DestinationCheckResponse(
-                    vehicleId,
-                    vehicleNumber,
-                    stationId,
-                    matchedStationName,
-                    "PASSED",
-                    false,
-                    "Bus has already passed your destination");
+        }
+        return new DestinationCheckResponse(
+                vehicleId,
+                vehicleNumber,
+                stationId,
+                matchedStationName,
+                "PASSED",
+                false,
+                "Bus has already passed your destination");
+    }
+
+    private static final class TargetStationMatch {
+        private final int index;
+        private final VehicleTripDetailsResponse.RouteDetail station;
+
+        private TargetStationMatch(int index, VehicleTripDetailsResponse.RouteDetail station) {
+            this.index = index;
+            this.station = station;
         }
     }
 
