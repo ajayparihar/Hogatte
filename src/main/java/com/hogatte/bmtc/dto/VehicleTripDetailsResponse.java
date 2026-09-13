@@ -1,5 +1,6 @@
 package com.hogatte.bmtc.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -21,10 +22,8 @@ public class VehicleTripDetailsResponse {
     private Integer RowCount;
 
     @JsonProperty("trip_status")
+    @JsonAlias({"tripstatus"})
     private String tripStatus;
-
-    @JsonProperty("tripstatus")
-    private String tripstatus;
 
     @JsonProperty("Issuccess")
     private boolean Issuccess;

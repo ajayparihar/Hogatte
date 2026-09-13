@@ -79,7 +79,7 @@ class VehicleTripDetailsResponseDeserializationTest {
         assertNotNull(response);
         assertEquals("Success", response.getMessage());
         assertEquals(51, response.getRowCount());
-        assertEquals("Running", response.getTripstatus());
+        assertEquals("Running", response.getTripStatus());
         assertNotNull(response.getRouteDetails());
         assertEquals(1, response.getRouteDetails().size());
     }
