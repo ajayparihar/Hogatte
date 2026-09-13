@@ -1,0 +1,9 @@
+bmtc:
+  api:
+    connect-timeout-ms: 2000
+    read-timeout-ms: 4000
+
+logging:
+  level:
+    root: WARN
+    com.hogatte: INFO

@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: hogatte
+
+server:
+  port: 8080
+
+bmtc:
+  api:
+    base-url: https://bmtcmobileapi.karnataka.gov.in/WebAPI
+    connect-timeout-ms: 3000
+    read-timeout-ms: 5000
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
