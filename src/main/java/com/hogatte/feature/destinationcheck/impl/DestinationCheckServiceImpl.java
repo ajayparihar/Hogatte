@@ -38,7 +38,7 @@ public class DestinationCheckServiceImpl implements DestinationCheckService {
 
         String vehicleNumber = null;
         if (tripDetails.getLiveLocation() != null && !tripDetails.getLiveLocation().isEmpty()) {
-            vehicleNumber = tripDetails.getLiveLocation().get(0).getVehiclenumber();
+            vehicleNumber = tripDetails.getLiveLocation().getFirst().getVehiclenumber();
         }
 
         // Step 2: Get RouteDetails
@@ -91,7 +91,7 @@ public class DestinationCheckServiceImpl implements DestinationCheckService {
         Double liveLat = null;
         Double liveLon = null;
         if (tripDetails.getLiveLocation() != null && !tripDetails.getLiveLocation().isEmpty()) {
-            VehicleTripDetailsResponse.LiveLocationEntry live = tripDetails.getLiveLocation().get(0);
+            VehicleTripDetailsResponse.LiveLocationEntry live = tripDetails.getLiveLocation().getFirst();
             liveLat = live.getLatitude();
             liveLon = live.getLongitude();
         } else if (tripDetails.getCurrlatitude() != null && tripDetails.getCurrlongitude() != null) {
@@ -175,11 +175,8 @@ public class DestinationCheckServiceImpl implements DestinationCheckService {
         if ("No Records Found".equalsIgnoreCase(tripDetails.getMessage())) {
             return true;
         }
-        if (tripDetails.getRowCount() != null && tripDetails.getRowCount() <= 1
-                && tripDetails.getRouteDetails() == null) {
-            return true;
-        }
-        return false;
+        return tripDetails.getRowCount() != null && tripDetails.getRowCount() <= 1
+                && tripDetails.getRouteDetails() == null;
     }
 
     private String normalize(String name) {

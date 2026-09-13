@@ -22,66 +22,37 @@ public class BmtcApiClientImpl implements BmtcApiClient {
     @Override
     public ListVehiclesResponse listVehicles(String vehicleRegNo) {
         String response = vehicleListService.fetchVehicles(vehicleRegNo);
-        try {
-            String jsonToParse = response;
-            if (response.startsWith("\"") && response.endsWith("\"")) {
-                jsonToParse = response.substring(1, response.length() - 1);
-                jsonToParse = jsonToParse.replace("\\\"", "\"");
-            }
-            return objectMapper.readValue(jsonToParse, ListVehiclesResponse.class);
-        } catch (Exception e) {
-            log.error("Failed to parse vehicle list response for vehicleRegNo: {}", vehicleRegNo, e);
-            throw new RuntimeException("Failed to parse vehicle list", e);
-        }
+        return parseResponse(response, ListVehiclesResponse.class, "list vehicles response", "vehicleRegNo=" + vehicleRegNo);
     }
 
     @Override
     public VehicleTripDetailsResponse getVehicleTripDetails(Long vehicleId) {
         String response = vehicleListService.fetchVehicleTripDetails(vehicleId);
-        try {
-            // Handle case where response is wrapped in quotes (JSON string)
-            String jsonToParse = response;
-            if (response.startsWith("\"") && response.endsWith("\"")) {
-                jsonToParse = response.substring(1, response.length() - 1);
-                // Unescape escaped quotes
-                jsonToParse = jsonToParse.replace("\\\"", "\"");
-            }
-            return objectMapper.readValue(jsonToParse, VehicleTripDetailsResponse.class);
-        } catch (Exception e) {
-            log.error("Failed to parse vehicle trip details for vehicleId: {}", vehicleId, e);
-            throw new RuntimeException("Failed to parse vehicle trip details: " + e.getMessage(), e);
-        }
+        return parseResponse(response, VehicleTripDetailsResponse.class, "vehicle trip details response", "vehicleId=" + vehicleId);
     }
 
     @Override
     public RoutePointsResponse getRoutePoints(Long routeId) {
         String response = vehicleListService.fetchRoutePoints(routeId);
-        try {
-            String jsonToParse = response;
-            if (response.startsWith("\"") && response.endsWith("\"")) {
-                jsonToParse = response.substring(1, response.length() - 1);
-                jsonToParse = jsonToParse.replace("\\\"", "\"");
-            }
-            return objectMapper.readValue(jsonToParse, RoutePointsResponse.class);
-        } catch (Exception e) {
-            log.error("Failed to parse route points for routeId: {}", routeId, e);
-            throw new RuntimeException("Failed to parse route points", e);
-        }
+        return parseResponse(response, RoutePointsResponse.class, "route points response", "routeId=" + routeId);
     }
 
     @Override
     public BusStopResponse findBusStops(String stationName) {
         String response = vehicleListService.fetchBusStops(stationName);
+        return parseResponse(response, BusStopResponse.class, "bus stop response", "stationName=" + stationName);
+    }
+
+    private <T> T parseResponse(String response, Class<T> responseType, String operation, String identifier) {
         try {
-            String jsonToParse = response;
-            if (response.startsWith("\"") && response.endsWith("\"")) {
-                jsonToParse = response.substring(1, response.length() - 1);
-                jsonToParse = jsonToParse.replace("\\\"", "\"");
+            String json = response == null ? null : response.trim();
+            if (json != null && json.startsWith("\"") && json.endsWith("\"")) {
+                json = objectMapper.readValue(json, String.class);
             }
-            return objectMapper.readValue(jsonToParse, BusStopResponse.class);
+            return objectMapper.readValue(json, responseType);
         } catch (Exception e) {
-            log.error("Failed to parse bus stops for stationName: {}", stationName, e);
-            throw new RuntimeException("Failed to parse bus stops", e);
+            log.error("Failed to parse {} for {}", operation, identifier, e);
+            throw new RuntimeException("Failed to parse " + operation + ": " + e.getMessage(), e);
         }
     }
 }

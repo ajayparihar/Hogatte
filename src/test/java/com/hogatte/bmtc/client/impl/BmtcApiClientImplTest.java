@@ -1,7 +1,6 @@
 package com.hogatte.bmtc.client.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hogatte.bmtc.dto.BusStopResponse;
 import com.hogatte.bmtc.dto.ListVehiclesResponse;
 import com.hogatte.bmtc.dto.RoutePointsResponse;
 import com.hogatte.bmtc.dto.VehicleTripDetailsResponse;
@@ -12,9 +11,6 @@ import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 
 class BmtcApiClientImplTest {
 

@@ -1,7 +1,6 @@
 package com.hogatte.feature.vehiclelist;
 
 import com.hogatte.bmtc.client.BmtcApiClient;
-import com.hogatte.bmtc.dto.BusStopResponse;
 import com.hogatte.bmtc.dto.ListVehiclesResponse;
 import com.hogatte.bmtc.dto.RoutePointsResponse;
 import com.hogatte.bmtc.dto.VehicleTripDetailsResponse;
